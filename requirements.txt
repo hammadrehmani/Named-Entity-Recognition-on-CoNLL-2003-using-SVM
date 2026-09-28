@@ -1,0 +1,19 @@
+# Core scientific computing and machine learning
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Natural Language Processing & NER Evaluation
+seqeval>=1.2.2
+datasets>=2.16.0
+pyarrow>=14.0.0
+
+# Visualization and Plotting
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Notebook execution and utilities
+nbformat>=5.9.0
+joblib>=1.3.0
+tqdm>=4.66.0

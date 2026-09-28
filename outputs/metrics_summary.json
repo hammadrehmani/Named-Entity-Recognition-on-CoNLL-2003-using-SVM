@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-09-28 14:52:25",
+  "hyperparameters": {
+    "best_C": 1.0,
+    "tuning_history": [
+      {
+        "C": 0.05,
+        "macro_f1": 0.8560277409513992,
+        "weighted_f1": 0.9721142069909436,
+        "training_time_s": 28.971272468566895
+      },
+      {
+        "C": 0.1,
+        "macro_f1": 0.8663343252396223,
+        "weighted_f1": 0.9741188991218451,
+        "training_time_s": 38.25227451324463
+      },
+      {
+        "C": 0.5,
+        "macro_f1": 0.8727743450648797,
+        "weighted_f1": 0.9753473252556486,
+        "training_time_s": 50.49917149543762
+      },
+      {
+        "C": 1.0,
+        "macro_f1": 0.8739561398606185,
+        "weighted_f1": 0.9754708601594135,
+        "training_time_s": 58.282623529434204
+      }
+    ],
+    "max_iter": 2000,
+    "dual": false,
+    "random_state": 42
+  },
+  "token_level_test_metrics": {
+    "accuracy": 0.9572090018305158,
+    "macro_precision": 0.7993505814444747,
+    "macro_recall": 0.807141699924849,
+    "macro_f1": 0.8027805307935129,
+    "weighted_precision": 0.9574068993443599,
+    "weighted_recall": 0.9572090018305158,
+    "weighted_f1": 0.9571940962211032,
+    "per_class_f1": {
+      "O": 0.989240853419685,
+      "B-PER": 0.84098051539912,
+      "I-PER": 0.9028761984160066,
+      "B-ORG": 0.74625,
+      "I-ORG": 0.7112144102266125,
+      "B-LOC": 0.8461538461538461,
+      "I-LOC": 0.7312252964426877,
+      "B-MISC": 0.7934472934472935,
+      "I-MISC": 0.6636363636363637,
+      "macro avg": 0.8027805307935129,
+      "weighted avg": 0.9571940962211032
+    }
+  },
+  "entity_level_test_metrics": {
+    "precision": 0.7146823452555937,
+    "recall": 0.7747875354107648,
+    "f1_score": 0.7435222156146462
+  },
+  "error_breakdown": {
+    "false_positives (O -> Entity)": 442,
+    "false_negatives (Entity -> O)": 382,
+    "entity_type_confusion": 1065,
+    "boundary_confusion": 98
+  }
+}

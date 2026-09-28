@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoNLL-2003 Named Entity Recognition | Linear SVM Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="logo-badge">SVM</div>
+        <div class="brand-text">
+          <h1>CoNLL-2003 NER Pipeline</h1>
+          <span class="subtext">By Muhammad Hammad &bull; Linear Support Vector Classifier &bull; 76,000+ Features</span>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-label">Model Ready &bull; C=1.0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav" role="tablist">
+      <button class="tab-btn active" data-tab="tab-demo" id="tab-btn-demo">
+        Live Analyzer
+      </button>
+      <button class="tab-btn" data-tab="tab-dashboard" id="tab-btn-dashboard">
+        Benchmark Visualizations
+      </button>
+      <button class="tab-btn" data-tab="tab-explorer" id="tab-btn-explorer">
+        Test Set Explorer
+      </button>
+      <button class="tab-btn" data-tab="tab-errors" id="tab-btn-errors">
+        Error Analysis
+      </button>
+      <button class="tab-btn" data-tab="tab-specs" id="tab-btn-specs">
+        System Architecture
+      </button>
+    </nav>
+
+    <!-- Tab 1: Live Analyzer Demo -->
+    <section id="tab-demo" class="tab-content active">
+      <div class="grid-layout">
+        <!-- Input Panel -->
+        <div class="card input-card">
+          <div class="card-header">
+            <h2>Text Input & Sample Scenarios</h2>
+            <span class="hint">Type or select a domain preset</span>
+          </div>
+
+          <!-- Quick Samples -->
+          <div class="sample-pills">
+            <span class="pill-label">Presets:</span>
+            <button class="pill" data-sample="world">World News</button>
+            <button class="pill" data-sample="sports">Sports Recap</button>
+            <button class="pill" data-sample="business">Business & Tech</button>
+            <button class="pill" data-sample="conll">CoNLL Gold</button>
+          </div>
+
+          <textarea id="input-text" placeholder="Enter text to analyze named entities... (e.g. German Chancellor Werner Zwingmann announced new trade policies with Britain in Brussels yesterday.)" rows="5"></textarea>
+
+          <div class="input-actions">
+            <button id="btn-analyze" class="btn btn-primary">
+              Analyze Entities
+            </button>
+            <button id="btn-clear" class="btn btn-secondary">Clear</button>
+            <div id="loading-spinner" class="spinner hidden"></div>
+          </div>
+        </div>
+
+        <!-- Entity Type Legend -->
+        <div class="card legend-card">
+          <div class="card-header">
+            <h3>Entity Type Legend</h3>
+          </div>
+          <div class="legend-grid">
+            <div class="legend-item tag-per">
+              <span class="badge">PER</span>
+              <span class="legend-desc">Person Names</span>
+            </div>
+            <div class="legend-item tag-loc">
+              <span class="badge">LOC</span>
+              <span class="legend-desc">Locations & Nations</span>
+            </div>
+            <div class="legend-item tag-org">
+              <span class="badge">ORG</span>
+              <span class="legend-desc">Organizations & Teams</span>
+            </div>
+            <div class="legend-item tag-misc">
+              <span class="badge">MISC</span>
+              <span class="legend-desc">Nationalities & Events</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Display Section -->
+      <div class="card result-card" id="result-container">
+        <div class="card-header">
+          <h2>Annotated Entity Visualization</h2>
+          <span class="entity-count-badge" id="entity-count-badge">0 Entities Detected</span>
+        </div>
+
+        <div class="annotated-output" id="annotated-output">
+          <p class="placeholder-text">Enter text above and click "Analyze Entities" to see highlighted named entities.</p>
+        </div>
+
+        <!-- Summary Cards for Extracted Entities -->
+        <div class="entity-chips-container" id="entity-chips"></div>
+
+        <!-- Token Breakdown Accordion -->
+        <div class="details-section">
+          <button class="btn-accordion" id="toggle-token-table">
+            <span>Show Token-Level Feature & Decision Breakdown</span>
+          </button>
+          <div class="table-responsive hidden" id="token-table-wrapper">
+            <table class="data-table" id="token-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Token</th>
+                  <th>POS Tag</th>
+                  <th>Predicted Label</th>
+                  <th>Entity Type</th>
+                  <th>Length</th>
+                  <th>Shape Signals</th>
+                </tr>
+              </thead>
+              <tbody id="token-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Dashboard Visualizations -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="metrics-banner">
+        <div class="metric-card">
+          <div class="metric-label">Test Token Accuracy</div>
+          <div class="metric-value highlight-blue">95.72%</div>
+          <div class="metric-sub">46,435 test tokens</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Token Weighted F1</div>
+          <div class="metric-value highlight-green">0.9572</div>
+          <div class="metric-sub">Macro F1: 0.8028</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Entity Micro F1 (Seqeval)</div>
+          <div class="metric-value highlight-purple">74.35%</div>
+          <div class="metric-sub">Strict Span Matching</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Top Category F1</div>
+          <div class="metric-value highlight-gold">LOC (81.50%)</div>
+          <div class="metric-sub">PER: 77.2% | MISC: 73.0%</div>
+        </div>
+      </div>
+
+      <div class="figures-gallery">
+        <div class="figure-card" data-img="/api/figures/confusion_matrix.png">
+          <h3>Normalized Confusion Matrix</h3>
+          <p>Class-conditional recall across all 9 BIO tags</p>
+          <img src="/api/figures/confusion_matrix.png" alt="Confusion Matrix" loading="lazy">
+        </div>
+        <div class="figure-card" data-img="/api/figures/per_class_metrics.png">
+          <h3>Per-Class Performance</h3>
+          <p>Precision, Recall, and F1 per entity category</p>
+          <img src="/api/figures/per_class_metrics.png" alt="Per Class Metrics" loading="lazy">
+        </div>
+        <div class="figure-card" data-img="/api/figures/eda_splits.png">
+          <h3>Dataset Split Volumes</h3>
+          <p>Sentences and token counts across train/val/test</p>
+          <img src="/api/figures/eda_splits.png" alt="EDA Splits" loading="lazy">
+        </div>
+        <div class="figure-card" data-img="/api/figures/eda_entity_dist.png">
+          <h3>Training Entity Distribution</h3>
+          <p>BIO tag frequencies excluding background 'O'</p>
+          <img src="/api/figures/eda_entity_dist.png" alt="Entity Distribution" loading="lazy">
+        </div>
+        <div class="figure-card" data-img="/api/figures/eda_sentence_lengths.png">
+          <h3>Sentence Length Distribution</h3>
+          <p>Histogram and KDE curve across training sentences</p>
+          <img src="/api/figures/eda_sentence_lengths.png" alt="Sentence Length Distribution" loading="lazy">
+        </div>
+        <div class="figure-card" data-img="/api/figures/error_breakdown.png">
+          <h3>Error Taxonomy Breakdown</h3>
+          <p>Distribution of misclassified test tokens</p>
+          <img src="/api/figures/error_breakdown.png" alt="Error Breakdown" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Test Set Explorer -->
+    <section id="tab-explorer" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Official Test Set Sentence Explorer</h2>
+          <span class="hint">Inspect real CoNLL-2003 test sentences and compare Ground Truth with Model Predictions</span>
+        </div>
+        <div class="explorer-controls">
+          <button id="btn-next-sample" class="btn btn-secondary">Next Sample Sentence</button>
+          <span id="sample-id-label" class="sample-id">Sentence #1</span>
+        </div>
+        <div class="sentence-box" id="explorer-sentence-display">
+          <!-- Populated by JavaScript -->
+        </div>
+        <div class="comparison-grid" id="explorer-tokens-grid">
+          <!-- Token tags side by side -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Error Analysis -->
+    <section id="tab-errors" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Error Taxonomy & Linguistic Root Causes</h2>
+          <span class="hint">Detailed breakdown of 1,987 misclassified tokens on the test set</span>
+        </div>
+        
+        <div class="error-columns">
+          <div class="error-category-card">
+            <div class="err-header">
+              <span class="err-badge type-confusion">53.6%</span>
+              <h3>Entity Type Confusion (1,065 tokens)</h3>
+            </div>
+            <p><strong>Primary Cause:</strong> Polysemy and metonymy. National names in sports reporting are labeled as <code>ORG</code> or <code>PER</code> in gold annotations (*e.g., "JAPAN GET LUCKY WIN"*), but the linear model classifies them as <code>LOC</code>.</p>
+          </div>
+
+          <div class="error-category-card">
+            <div class="err-header">
+              <span class="err-badge false-positive">22.2%</span>
+              <h3>False Positives: O &rarr; Entity (442 tokens)</h3>
+            </div>
+            <p><strong>Primary Cause:</strong> Sentence-initial capitalization mimicking proper nouns (*e.g., "Defender Hassan..."* where "Defender" is an occupational noun, not an entity).</p>
+          </div>
+
+          <div class="error-category-card">
+            <div class="err-header">
+              <span class="err-badge false-negative">19.2%</span>
+              <h3>False Negatives: Entity &rarr; O (382 tokens)</h3>
+            </div>
+            <p><strong>Primary Cause:</strong> Rare, foreign, or out-of-vocabulary named entities that lack recognizable morphological suffixes and appear without strong contextual cues.</p>
+          </div>
+
+          <div class="error-category-card">
+            <div class="err-header">
+              <span class="err-badge boundary-confusion">4.9%</span>
+              <h3>Boundary Confusion: B &harr; I (98 tokens)</h3>
+            </div>
+            <p><strong>Primary Cause:</strong> The token-level SVM classifies each token independently without a transition matrix (Markov property), occasionally mislabeling consecutive entity tokens.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Architecture & Specs -->
+    <section id="tab-specs" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Pipeline Specifications & Mathematical Details</h2>
+        </div>
+        <div class="specs-grid">
+          <div class="spec-item">
+            <h4>Algorithm</h4>
+            <p>Linear Support Vector Classifier (<code>LinearSVC</code> via LibLinear coordinate descent)</p>
+          </div>
+          <div class="spec-item">
+            <h4>Primal Formulation</h4>
+            <p>$\min_{\mathbf{w}} \frac{1}{2}\|\mathbf{w}\|^2 + C\sum \max(0, 1 - y_i\mathbf{w}^T\mathbf{x}_i)^2$ with $C=1.0$</p>
+          </div>
+          <div class="spec-item">
+            <h4>Feature Space</h4>
+            <p>76,004 dimensional sparse binary vector per token ($L_2$ regularized)</p>
+          </div>
+          <div class="spec-item">
+            <h4>Context Window</h4>
+            <p>Bi-directional 3-token context window ($[-1, 0, +1]$) with lexical, affix, and POS features</p>
+          </div>
+          <div class="spec-item">
+            <h4>Training Runtime</h4>
+            <p>58.28 seconds on 203,621 tokens (single CPU core, 0 GPU requirements)</p>
+          </div>
+          <div class="spec-item">
+            <h4>Tagging Scheme</h4>
+            <p>Standard 9-class BIO representation (PER, ORG, LOC, MISC, O)</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Image Modal for Plot Zooming -->
+  <div class="modal hidden" id="image-modal">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <img id="modal-img" src="" alt="Zoomed Plot">
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>CoNLL-2003 Named Entity Recognition &bull; Linear Support Vector Classifier &bull; Developed by <strong>Muhammad Hammad</strong></p>
+    <div style="margin-top: 0.5rem; display: flex; justify-content: center; gap: 1.25rem;">
+      <a href="https://github.com/hammadrehmani" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: none; font-size: 0.82rem; font-weight: 500;">GitHub: @hammadrehmani</a>
+      <a href="https://www.linkedin.com/in/hammadrehmani" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: none; font-size: 0.82rem; font-weight: 500;">LinkedIn: /in/hammadrehmani</a>
+      <a href="https://www.kaggle.com/hammadrehmani" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: none; font-size: 0.82rem; font-weight: 500;">Kaggle: @hammadrehmani</a>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
